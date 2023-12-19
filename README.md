@@ -15,6 +15,16 @@ GPT流派的Youtube直播流切片翻譯(半即時)
 
 最後用Whisper去讀取mp3轉文字印出
 
+## 操作環境
+因為會用上Whisper，眾所皆知OpenAI Whisper模型是開源的
+
+但是開源就需要用上GPU運算，所以建議在Colab上面跑
+
+免費的T4 GPU跑中等模型是剛剛好，大型模型可能會顯存爆炸
+
+## 設置說明
+DeepL的KEY需要去搞一個，DeepL的翻譯品質很好
+
 
 
 
