@@ -101,9 +101,9 @@ def main(segment_duration, total_duration):
                     print(f"无法翻译段落 {segment}。")
             else:
                 print(f"无法转录段落 {segment}。")
-            os.remove(filename)  # 清理：删除音频文件
+            os.remove(filename)  # 清理：刪除聲音檔案
         else:
-            print(f"录制段落 {segment} 失败。")
+            print(f"錄製段落 {segment} 失敗。")
         time.sleep(segment_duration)
 
 # 配置參數
