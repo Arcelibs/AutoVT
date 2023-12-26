@@ -98,7 +98,7 @@ def main(segment_duration, total_duration):
                     #print(f"Segment {segment}: {translated_text}")
                     print(f"{translated_text}")
                 else:
-                    print(f"无法翻译段落 {segment}。")
+                    print(f"无法翻译 {segment}。")
             else:
                 print(f"无法转录段落 {segment}。")
             os.remove(filename)  # 清理：刪除聲音檔案
