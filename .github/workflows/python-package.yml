@@ -1,4 +1,4 @@
-name: Python application
+name: Python application Cuda
 
 on:
   push:
@@ -7,28 +7,39 @@ on:
   pull_request:
     paths:
       - 'Local-Windows/main.py'
+
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.10'
-    - name: Install dependencies
+
+    - name: Install PyInstaller
       run: |
         python -m pip install --upgrade pip
-        pip install -r Local-Windows/requirements.txt
         pip install pyinstaller
+
+    - name: Create AutoYT.cmd
+      run: |
+        echo pip install -r Local-Windows/requirements.txt > Local-Windows/AutoYT.cmd
+        echo start "" "main.exe" >> Local-Windows/AutoYT.cmd
+
     - name: Build exe with PyInstaller
       run: |
         cd Local-Windows
         pyinstaller --onefile main.py
-    - name: Upload EXE as Artifact
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: my-application-exe
-        path: Local-Windows/dist/main.exe
+        name: application-bundle
+        path: |
+          Local-Windows/dist/main.exe
+          Local-Windows/AutoYT.cmd
+          Local-Windows/requirements.txt
