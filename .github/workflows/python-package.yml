@@ -3,13 +3,13 @@ name: Python application Cuda
 on:
   push:
     paths:
-      - 'Local-Windows/main.py'
+      - 'Local-Windows/**'
   pull_request:
     paths:
-      - 'Local-Windows/main.py'
+      - 'Local-Windows/**'
 
 jobs:
-  build:
+  package-and-upload:
     runs-on: windows-latest
 
     steps:
@@ -20,23 +20,17 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install PyInstaller
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
+        pip install -r Local-Windows/requirements.txt
 
-    - name: Build exe with PyInstaller
+    - name: Package Files
       run: |
-        cd Local-Windows
-        pyinstaller --onefile --hidden-import=requests --debug all main.py
-        Move .\dist\main.exe .\main.exe
+        Compress-Archive -Path Local-Windows\* -DestinationPath packaged-files.zip
 
-    - name: Upload artifacts
+    - name: Upload Packaged Files as Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Python application Cuda
-        path: |
-          Local-Windows/main.exe
-          Local-Windows/AutoYT.cmd
-          Local-Windows/requirements.txt
+        path: packaged-files.zip
