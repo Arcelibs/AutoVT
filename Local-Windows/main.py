@@ -69,9 +69,9 @@ def record_audio(stream_url, duration, output_filename):
 # 轉寫聲音函數
 def transcribe_audio(file_path, language="japanese"):
     try:
-        # 使用 Faster Whisper 进行转录
+        # 使用 Faster Whisper 進行轉錄
         segments, info = model.transcribe(file_path)
-        # 合并段落以形成完整文本
+        # 合併段落
         text = " ".join([seg.text for seg in segments])
         return text
     except Exception as e:
