@@ -66,7 +66,7 @@ def record_audio(stream_url, duration, output_filename):
         return False
     return True
 
-# 转写音频的函数
+# 轉寫聲音函數
 def transcribe_audio(file_path, language="japanese"):
     try:
         # 使用 Faster Whisper 进行转录
