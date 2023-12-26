@@ -44,7 +44,7 @@ def call_gemini_api(input_text):
         return None
 
 
-# 使用 yt-dlp 获取 YouTube 媒体流地址
+# 使用 yt-dlp 獲取 YouTube 直播媒體位置
 def get_stream_url(youtube_url):
     command = ["yt-dlp", "-g", youtube_url]
     process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
