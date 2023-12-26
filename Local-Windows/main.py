@@ -106,8 +106,8 @@ def main(segment_duration, total_duration):
             print(f"录制段落 {segment} 失败。")
         time.sleep(segment_duration)
 
-# 配置参数
-SEGMENT_DURATION = 10  # 每个音频片段的长度，单位：秒
+# 配置參數
+SEGMENT_DURATION = 10  # 每一段錄製的長度，單位是秒
 TOTAL_DURATION = 6000   # 总录制时间，单位：秒
 
 if __name__ == "__main__":
