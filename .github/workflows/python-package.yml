@@ -3,10 +3,14 @@ name: Python application Cuda
 on:
   push:
     paths:
-      - 'Local-Windows/**'
+      - 'Local-Windows/main.py'
+      - 'Local-Windows/AutoYT.cmd'
+      - 'Local-Windows/requirements.txt'
   pull_request:
     paths:
-      - 'Local-Windows/**'
+      - 'Local-Windows/main.py'
+      - 'Local-Windows/AutoYT.cmd'
+      - 'Local-Windows/requirements.txt'
 
 jobs:
   package-and-upload:
@@ -27,10 +31,10 @@ jobs:
 
     - name: Package Files
       run: |
-        Compress-Archive -Path Local-Windows\* -DestinationPath packaged-files.zip
+        Compress-Archive -Path Local-Windows\AutoYT.cmd, Local-Windows\main.py, Local-Windows\requirements.txt -DestinationPath "Python application Cuda.zip"
 
     - name: Upload Packaged Files as Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: Python application Cuda
-        path: packaged-files.zip
+        name: Python-application-Cuda
+        path: "Python application Cuda.zip"
