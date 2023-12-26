@@ -26,6 +26,8 @@ https://github.com/Purfview/whisper-standalone-win/releases/tag/libs
 
 ## 使用說明
 
+記得要先執行pip install -r requirements.txt !!
+
 僅支援Yotube完整連結，不支援短連結!
 ![image](https://github.com/Arcelibs/AutoVT/assets/49543451/e0732b8c-9fb3-493a-9e1b-787b9e50c084)
 
