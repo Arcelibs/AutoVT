@@ -13,7 +13,7 @@ on:
       - 'Local-Windows/requirements.txt'
 
 jobs:
-  package-and-upload:
+  upload-files:
     runs-on: windows-latest
 
     steps:
@@ -29,12 +29,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r Local-Windows/requirements.txt
 
-    - name: Package Files
-      run: |
-        Compress-Archive -Path Local-Windows\AutoYT.cmd, Local-Windows\main.py, Local-Windows\requirements.txt -DestinationPath "Python application Cuda.zip"
-
-    - name: Upload Packaged Files as Artifact
+    - name: Upload specified files as Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Python-application-Cuda
-        path: "Python application Cuda.zip"
+        path: |
+          Local-Windows/AutoYT.cmd
+          Local-Windows/main.py
+          Local-Windows/requirements.txt
