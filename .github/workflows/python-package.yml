@@ -22,3 +22,8 @@ jobs:
       run: |
         cd Local-Windows
         pyinstaller --onefile main.py
+    - name: Upload EXE as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-application-exe
+        path: Local-Windows/dist/main.exe
