@@ -25,21 +25,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
 
-    - name: Create AutoYT.cmd
-      run: |
-        echo pip install -r Local-Windows/requirements.txt > Local-Windows/AutoYT.cmd
-        echo start "" "main.exe" >> Local-Windows/AutoYT.cmd
-
     - name: Build exe with PyInstaller
       run: |
         cd Local-Windows
         pyinstaller --onefile main.py
+        Move .\dist\main.exe .\main.exe
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: Python_application_Cuda
+        name: application-bundle
         path: |
-          Local-Windows/dist/main.exe
+          Local-Windows/main.exe
           Local-Windows/AutoYT.cmd
           Local-Windows/requirements.txt
