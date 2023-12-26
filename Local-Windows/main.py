@@ -49,11 +49,11 @@ def get_stream_url(youtube_url):
     command = ["yt-dlp", "-g", youtube_url]
     process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if process.returncode != 0:
-        print(f"错误: 无法获取流地址。详情：{process.stderr}")
+        print(f"錯誤: 無法取得直播流。詳情：{process.stderr}")
         return None
     return process.stdout.strip()
 
-# 录制音频的函数
+# 錄製聲音的函數
 def record_audio(stream_url, duration, output_filename):
     try:
         command = [
@@ -62,7 +62,7 @@ def record_audio(stream_url, duration, output_filename):
         ]
         subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"错误: 无法录制音频。详情：{e.stderr.decode()}")
+        print(f"錯誤: 無法錄製聲音。詳情：{e.stderr.decode()}")
         return False
     return True
 
