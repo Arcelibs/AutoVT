@@ -13,11 +13,14 @@ GPT流派的Youtube直播流切片翻譯(半即時)
 
 最後用Whisper去讀取wav轉文字印出，印出的文字再翻譯
 
-## Colab版本
+## Colab版本(Cuda)
 運用於Google Colab使用，其他ipynb環境無測試
 
-## Local-Windows版本
+## Local-Windows版本(Cuda/CPU)
 運用於Windows環境使用
+
+## Docker版本(Cuda)
+> docker push arcelibs/autovt:latest
 
 
 ## 備註
