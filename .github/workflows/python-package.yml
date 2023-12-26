@@ -1,7 +1,12 @@
 name: Python application
 
-on: [push]
-
+on:
+  push:
+    paths:
+      - 'Local-Windows/main.py'
+  pull_request:
+    paths:
+      - 'Local-Windows/main.py'
 jobs:
   build:
 
