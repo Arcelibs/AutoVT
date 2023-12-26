@@ -85,7 +85,7 @@ def main(segment_duration, total_duration):
     youtube_url = input("請輸入 YouTube URL: ")  # 讓用戶輸入 YouTube URL
     stream_url = get_stream_url(youtube_url)
     if not stream_url:
-        print("无法获取 YouTube 直播流地址。")
+        print("無法取得 YouTube 直播流地址。")
         return
 
     for segment in range(0, total_duration, segment_duration):
