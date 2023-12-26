@@ -40,7 +40,7 @@ def call_gemini_api(input_text):
             print("KeyError: 'candidates' not found in response.")
             return None
     else:
-        print(f"错误: {response.status_code}")
+        print(f"錯誤: {response.status_code}")
         return None
 
 
@@ -100,7 +100,7 @@ def main(segment_duration, total_duration):
                 else:
                     print(f"無法翻譯 {segment}。")
             else:
-                print(f"无法转录段落 {segment}。")
+                print(f"無法轉錄片段 {segment}。")
             os.remove(filename)  # 清理：刪除聲音檔案
         else:
             print(f"錄製段落 {segment} 失敗。")
@@ -108,7 +108,7 @@ def main(segment_duration, total_duration):
 
 # 配置參數
 SEGMENT_DURATION = 10  # 每一段錄製的長度，單位是秒
-TOTAL_DURATION = 6000   # 总录制时间，单位：秒
+TOTAL_DURATION = 6000   # 總錄製時間，單位是秒
 
 if __name__ == "__main__":
     main(SEGMENT_DURATION, TOTAL_DURATION)
