@@ -20,7 +20,7 @@ GPT流派的Youtube直播流切片翻譯(半即時)
 運用於Windows環境使用
 
 ## Docker版本(Cuda)
-> docker push arcelibs/autovt:latest
+> docker pull arcelibs/autovt
 
 
 ## 備註
