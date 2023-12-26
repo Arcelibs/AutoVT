@@ -8,13 +8,26 @@ from faster_whisper import WhisperModel
 
 
 # 初始化 Faster Whisper 模型
-model = WhisperModel("large-v2", device="cpu", compute_type="int8_float16")  # 使用适合您硬件的模型大小和设备
+model = WhisperModel("large-v2", device="cuda", compute_type="int8")  # 使用适合您硬件的模型大小和设备
 
+def get_api_key_from_file(file_path='api_key.txt'):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        print("未找到 API 密鑰文件。")
+        return None
 
 def call_gemini_api(input_text):
-    url = f"https://palm-proxy.arcelibs.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyC03RJ0NEzidKXjeTZQqYVjjT5NWs4dYpw"
+    # 從文件中獲取 API 密鑰
+    api_key = get_api_key_from_file()
+    if not api_key:
+        print("無效的 API 密鑰。")
+        return None
+    
+    url = f"https://palm-proxy.arcelibs.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
     headers = {'Content-Type': 'application/json'}
-    formatted_input = f"請你必須將下列語句翻譯成流暢的繁體中文:\n{input_text}，"
+    formatted_input = f"請你必須將下列語句翻譯成流暢的繁體中文:\n{input_text}"
     data = json.dumps({"contents":[{"parts":[{"text": formatted_input}]}]})
 
     response = requests.post(url, headers=headers, data=data)
@@ -68,7 +81,8 @@ def transcribe_audio(file_path, language="japanese"):
 
 
 # 主流程
-def main(youtube_url, segment_duration, total_duration):
+def main(segment_duration, total_duration):
+    youtube_url = input("請輸入 YouTube URL: ")  # 讓用戶輸入 YouTube URL
     stream_url = get_stream_url(youtube_url)
     if not stream_url:
         print("无法获取 YouTube 直播流地址。")
@@ -93,9 +107,8 @@ def main(youtube_url, segment_duration, total_duration):
         time.sleep(segment_duration)
 
 # 配置参数
-YOUTUBE_URL = "https://www.youtube.com/watch?v=SvoZtc_Z9ZA"  # YouTube 直播页面 URL
 SEGMENT_DURATION = 10  # 每个音频片段的长度，单位：秒
 TOTAL_DURATION = 6000   # 总录制时间，单位：秒
 
 if __name__ == "__main__":
-    main(YOUTUBE_URL, SEGMENT_DURATION, TOTAL_DURATION)
+    main(SEGMENT_DURATION, TOTAL_DURATION)
