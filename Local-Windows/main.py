@@ -75,7 +75,7 @@ def transcribe_audio(file_path, language="japanese"):
         text = " ".join([seg.text for seg in segments])
         return text
     except Exception as e:
-        print(f"错误: 无法转写音频。详情：{e}")
+        print(f"錯誤: 無法轉錄聲音。詳情：{e}")
         return None
 
 
