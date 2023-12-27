@@ -74,25 +74,39 @@ def call_gemini_api(input_text):
         data = json.dumps({"contents": [{"parts": [{"text": formatted_input}]}]})
 
         response = requests.post(url, headers=headers, data=data)
+        response_data = response.json()
+        response_text = json.dumps(response_data, indent=4)
+
+        # 保存API回應內容
+        save_transcription("gemini_response", response_text, is_api_response=True)
+
         if response.status_code == 200:
-            response_data = response.json()
             if 'blockReason' in response_data and response_data['blockReason'] == 'SAFETY':
-                # 抓deepl的key
+                # 获取 DeepL API KEY
                 deepl_auth_key = get_deepl_api_key_from_file()
-                deepl_translated = call_deepl_api(segment, deepl_auth_key)
-                if deepl_translated:
-                    # 再次尝试使用 Gemini API
-                    gemini_second_try = call_gemini_api(deepl_translated)
-                    all_translated_text.append(gemini_second_try)
-                elif 'candidates' in response_data:
-                    translated_text = response_data['candidates'][0]['content']['parts'][0]['text']
-                    all_translated_text.append(translated_text)
+                if deepl_auth_key:
+                    deepl_translated = call_deepl_api(segment, deepl_auth_key)
+                    if deepl_translated:
+                        # 再次尝试使用 Gemini API
+                        gemini_second_try = call_gemini_api(deepl_translated)
+                        all_translated_text.append(gemini_second_try)
+                    else:
+                        print("DeepL 翻译失败。")
+                        all_translated_text.append(f"[翻译段落失败: {segment}]")
+                else:
+                    print("无法获取 DeepL API KEY。")
+                    all_translated_text.append(f"[翻译段落失败: {segment}]")
+            elif 'candidates' in response_data:
+                translated_text = response_data['candidates'][0]['content']['parts'][0]['text']
+                all_translated_text.append(translated_text)
             else:
                 print("KeyError: 'candidates' not found in response.")
-                all_translated_text.append(f"[翻譯段落失敗: {segment}]")
+                all_translated_text.append(f"[翻译段落失败: {segment}]")
         else:
-            print(f"錯誤: {response.status_code}")
-            all_translated_text.append(f"[翻譯段落失敗: {segment}]")
+            print(f"错误: {response.status_code}")
+            all_translated_text.append(f"[翻译段落失败: {segment}]")
+
+    return ' '.join(all_translated_text)
 
 
 # 使用 yt-dlp 獲取 YouTube 直播媒體位置
@@ -121,7 +135,7 @@ def record_audio(stream_url, duration, output_filename):
 def transcribe_audio(file_path, language="japanese"):
     try:
         # 使用 Faster Whisper 进行转录
-        segments, info = model.transcribe(file_path)
+        segments, info = model.transcribe(file_path, vad_filter=True)
         # 合并段落以形成完整文本
         text = " ".join([seg.text for seg in segments])
 
@@ -134,15 +148,16 @@ def transcribe_audio(file_path, language="japanese"):
         return None
 
 # 新增的保存轉錄文的函數
-def save_transcription(file_path, text):
-    raw_data_dir = 'RawData'
+def save_transcription(file_path, text, is_api_response=False):
+    raw_data_dir = 'RawData' if not is_api_response else 'APIResponses'
     if not os.path.exists(raw_data_dir):
         os.makedirs(raw_data_dir)
     
     base_filename = os.path.splitext(os.path.basename(file_path))[0]
-    transcription_filename = os.path.join(raw_data_dir, f'{base_filename}.txt')
+    suffix = '.txt' if not is_api_response else '_response.json'
+    filename = os.path.join(raw_data_dir, f'{base_filename}{suffix}')
 
-    with open(transcription_filename, 'w', encoding='utf-8') as file:
+    with open(filename, 'w', encoding='utf-8') as file:
         file.write(text)
 
 # 新增語言檢測機制並加載模型
