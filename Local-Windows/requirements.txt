@@ -5,3 +5,6 @@ requests
 openai==0.28
 requests
 google-generativeai
+langdetect
+spacy[cuda110]
+

@@ -4,12 +4,16 @@ import os
 import subprocess
 import time
 import whisper
+import spacy
+import re
 from faster_whisper import WhisperModel
+from langdetect import detect
 
 
 # 初始化 Faster Whisper 模型
 model = WhisperModel("large-v2", device="cuda", compute_type="int8")  # 使用适合您硬件的模型大小和设备
 
+#從api_key.txt取得api
 def get_api_key_from_file(file_path='api_key.txt'):
     try:
         with open(file_path, 'r') as file:
@@ -18,30 +22,77 @@ def get_api_key_from_file(file_path='api_key.txt'):
         print("未找到 API 密鑰文件。")
         return None
 
-def call_gemini_api(input_text):
-    # 從文件中獲取 API 密鑰
-    api_key = get_api_key_from_file()
-    if not api_key:
-        print("無效的 API 密鑰。")
+#從deepl_api_key.txt取得api
+def get_deepl_api_key_from_file(file_path='deepl_api_key.txt'):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        print("未找到 DeepL API 密鑰文件。")
         return None
-    
-    url = f"https://palm-proxy.arcelibs.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
-    headers = {'Content-Type': 'application/json'}
-    formatted_input = f"請你必須將下列語句翻譯成流暢的繁體中文:\n{input_text}"
-    data = json.dumps({"contents":[{"parts":[{"text": formatted_input}]}]})
 
-    response = requests.post(url, headers=headers, data=data)
+# 呼叫DeepL API的函數(備案，當Gemini不能翻譯色色內容時)
+def call_deepl_api(input_text, deepL_auth_key, target_lang='ZH'):
+    deepL_url = 'https://api-free.deepl.com/v2/translate'
+    headers = {
+        'Authorization': f'DeepL-Auth-Key {deepL_auth_key}'
+    }
+    data = {
+        'text': input_text,
+        'target_lang': target_lang
+    }
+    response = requests.post(deepL_url, headers=headers, data=data)
     if response.status_code == 200:
         response_data = response.json()
-        #print("Response Data:", response_data)  # 调试：打印响应数据
-        try:
-            return response_data['candidates'][0]['content']['parts'][0]['text']
-        except KeyError:
-            print("KeyError: 'candidates' not found in response.")
+        if 'translations' in response_data and response_data['translations']:
+            return response_data['translations'][0]['text']
+        else:
+            print("DeepL 翻譯失敗：無翻譯結果。")
             return None
     else:
-        print(f"錯誤: {response.status_code}")
+        print(f"DeepL API 調用發生錯誤: {response.status_code}")
         return None
+
+# 呼叫Gemini的函數
+def call_gemini_api(input_text):
+    # 從文件中取得API KEY
+    api_key = get_api_key_from_file()
+    if not api_key:
+        print("API KEY 無效")
+        return None
+    
+    # APIURL請求標頭
+    url = "https://palm-proxy.arcelibs.com/v1beta/models/gemini-pro:generateContent?key={}".format(api_key)
+    headers = {'Content-Type': 'application/json'}
+
+    # 分段處理
+    segments = detect_and_split_text(input_text, max_length=500)  # 假设 500 是分段长度的上限
+    all_translated_text = []
+
+    for segment in segments:
+        formatted_input = f"請你必須將下列語句翻譯成流暢的繁體中文: \n{segment}"
+        data = json.dumps({"contents": [{"parts": [{"text": formatted_input}]}]})
+
+        response = requests.post(url, headers=headers, data=data)
+        if response.status_code == 200:
+            response_data = response.json()
+            if 'blockReason' in response_data and response_data['blockReason'] == 'SAFETY':
+                # 抓deepl的key
+                deepl_auth_key = get_deepl_api_key_from_file()
+                deepl_translated = call_deepl_api(segment, deepl_auth_key)
+                if deepl_translated:
+                    # 再次尝试使用 Gemini API
+                    gemini_second_try = call_gemini_api(deepl_translated)
+                    all_translated_text.append(gemini_second_try)
+                elif 'candidates' in response_data:
+                    translated_text = response_data['candidates'][0]['content']['parts'][0]['text']
+                    all_translated_text.append(translated_text)
+            else:
+                print("KeyError: 'candidates' not found in response.")
+                all_translated_text.append(f"[翻譯段落失敗: {segment}]")
+        else:
+            print(f"錯誤: {response.status_code}")
+            all_translated_text.append(f"[翻譯段落失敗: {segment}]")
 
 
 # 使用 yt-dlp 獲取 YouTube 直播媒體位置
@@ -93,6 +144,58 @@ def save_transcription(file_path, text):
 
     with open(transcription_filename, 'w', encoding='utf-8') as file:
         file.write(text)
+
+# 新增語言檢測機制並加載模型
+def detect_and_split_text(text, max_length):
+    language = detect(text)  
+    nlp = None
+    if language == "en":
+        nlp = spacy.load("en_core_web_sm")
+    elif language == "ja":
+        nlp = spacy.load("ja_core_news_sm")
+    elif language in ["zh-cn", "zh-tw"]:
+        nlp = spacy.load("zh_core_web_sm")
+    else:
+        # 無法辨識?就用標點符號分段
+        return split_text_on_punctuation(text, max_length)
+    
+    return split_text_natural(nlp, text, max_length)
+
+# 根據傳入的NLP對象來處理語句
+def split_text_natural(nlp, text, max_length):
+    doc = nlp(text)
+    segments = []
+    current_segment = ""
+    for sent in doc.sents:
+        if len(current_segment + sent.text) <= max_length:
+            current_segment += sent.text + " "
+        else:
+            if current_segment:  # 空字串處理
+                segments.append(current_segment.strip())
+            current_segment = sent.text + " "
+    if current_segment:
+        segments.append(current_segment.strip())
+    return segments
+
+# 不是中英日文? 就用標點符號來分類
+def split_text_on_punctuation(text, max_length):
+    # 定義分類的標點符號
+    punctuations = ".!?\n"
+    pattern = f"[{re.escape(punctuations)}]"
+
+    segments = []
+    current_segment = ""
+    for word in re.split(pattern, text):
+        if len(current_segment) + len(word) <= max_length:
+            current_segment += word
+        else:
+            if current_segment:
+                segments.append(current_segment.strip())
+            current_segment = word
+    if current_segment:
+        segments.append(current_segment.strip())
+
+    return segments
 
 # 主流程
 def main(segment_duration, total_duration):
