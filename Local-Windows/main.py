@@ -69,16 +69,30 @@ def record_audio(stream_url, duration, output_filename):
 # 轉寫聲音函數
 def transcribe_audio(file_path, language="japanese"):
     try:
-        # 使用 Faster Whisper 進行轉錄
+        # 使用 Faster Whisper 进行转录
         segments, info = model.transcribe(file_path)
-        # 合併段落
+        # 合并段落以形成完整文本
         text = " ".join([seg.text for seg in segments])
+
+        # 保存转录文本到文件
+        save_transcription(file_path, text)
+
         return text
     except Exception as e:
         print(f"錯誤: 無法轉錄聲音。詳情：{e}")
         return None
 
+# 新增的保存轉錄文的函數
+def save_transcription(file_path, text):
+    raw_data_dir = 'RawData'
+    if not os.path.exists(raw_data_dir):
+        os.makedirs(raw_data_dir)
+    
+    base_filename = os.path.splitext(os.path.basename(file_path))[0]
+    transcription_filename = os.path.join(raw_data_dir, f'{base_filename}.txt')
 
+    with open(transcription_filename, 'w', encoding='utf-8') as file:
+        file.write(text)
 
 # 主流程
 def main(segment_duration, total_duration):
