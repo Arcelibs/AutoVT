@@ -74,11 +74,11 @@ def call_gemini_api(input_text):
         return None
 
     # Gemini API URL 请求头
-    url = "https://palm-proxy.arcelibs.com/v1beta/models/gemini-pro:generateContent?key={}".format(api_key)
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={}".format(api_key)
     headers = {'Content-Type': 'application/json'}
 
     # 格式化输入文本，准备发送给 Gemini API
-    formatted_input = f"請你將下列語句翻譯成繁體中文，忽略任何語句與文法問題:\n{simplified_chinese_text}"
+    formatted_input = f"請你翻譯成繁體中文並修正任何語句與文法問題使其流暢: \n{simplified_chinese_text}"
     data = json.dumps({"contents": [{"parts": [{"text": formatted_input}]}]})
 
     # 发送请求到 Gemini API
@@ -94,7 +94,8 @@ def call_gemini_api(input_text):
             return response_data['candidates'][0]['content']['parts'][0]['text']
         else:
             print("KeyError: 'candidates' not found in response.")
-            return None
+            # 可以选择直接使用 DeepL API 的翻译结果
+            return simplified_chinese_text
     else:
         print(f"错误: {response.status_code}")
         return None
@@ -150,6 +151,19 @@ def save_transcription(file_path, text, is_api_response=False):
 
     with open(filename, 'w', encoding='utf-8') as file:
         file.write(text)
+
+# 新增的保存轉錄文本經過NLP出來的函數
+def save_nlp_segments(file_path, segments):
+    nlp_data_dir = 'RawData_NLP'
+    if not os.path.exists(nlp_data_dir):
+        os.makedirs(nlp_data_dir)
+
+    base_filename = os.path.splitext(os.path.basename(file_path))[0]
+    nlp_filename = os.path.join(nlp_data_dir, f'{base_filename}_nlp_segments.txt')
+
+    with open(nlp_filename, 'w', encoding='utf-8') as file:
+        for segment in segments:
+            file.write(segment + "\n\n")
 
 # 新增語言檢測機制並加載模型
 def detect_and_split_text(text, max_length=500):
@@ -213,6 +227,10 @@ def main(segment_duration, total_duration):
         if record_audio(stream_url, segment_duration, filename):
             text = transcribe_audio(filename)
             if text:
+                # 儲存
+                segments = detect_and_split_text(text, max_length=500)
+                save_nlp_segments(filename, segments)
+                
                 translated_text = call_gemini_api(text)
                 if translated_text:
                     #print(f"Segment {segment}: {translated_text}")
