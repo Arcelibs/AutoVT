@@ -89,15 +89,17 @@ def call_gemini_api(input_text):
     if response.status_code == 200:
         if 'blockReason' in response_data and response_data['blockReason'] == 'SAFETY':
             # 如果 Gemini API 返回 blockReason 为 SAFETY，直接使用 DeepL 翻译结果
-            return simplified_chinese_text
+            # 防止遞迴調用
+            if not is_retry:
+                return call_gemini_api(simplified_chinese_text, is_retry=True)
+            else:
+                return simplified_chinese_text
         elif 'candidates' in response_data:
+            # 正常处理逻辑
             return response_data['candidates'][0]['content']['parts'][0]['text']
         else:
             print("KeyError: 'candidates' not found in response.")
-            # 保存完整回應
-            save_debug_data("gemini_response", response_data)
-            # 可以选择直接使用 DeepL API 的翻译结果
-            return simplified_chinese_text
+            return None
     else:
         print(f"错误: {response.status_code}")
         return None
