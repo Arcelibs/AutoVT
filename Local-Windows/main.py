@@ -93,6 +93,7 @@ def call_gemini_api(input_text):
             if not is_retry:
                 return call_gemini_api(simplified_chinese_text, is_retry=True)
             else:
+                save_debug_data("gemini_response", response_data)
                 return simplified_chinese_text
         elif 'candidates' in response_data:
             # 正常处理逻辑
