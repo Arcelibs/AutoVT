@@ -31,7 +31,7 @@ def get_deepl_api_key_from_file(file_path='deepl_api_key.txt'):
         print("未找到 DeepL API 密鑰文件。")
         return None
 
-# 呼叫DeepL API的函數(備案，當Gemini不能翻譯色色內容時)
+# 呼叫DeepL API的函數
 def call_deepl_api(input_text, deepL_auth_key, target_lang='ZH'):
     deepL_url = 'https://api-free.deepl.com/v2/translate'
     headers = {
@@ -94,6 +94,8 @@ def call_gemini_api(input_text):
             return response_data['candidates'][0]['content']['parts'][0]['text']
         else:
             print("KeyError: 'candidates' not found in response.")
+            # 保存完整回應
+            save_debug_data("gemini_response", response_data)
             # 可以选择直接使用 DeepL API 的翻译结果
             return simplified_chinese_text
     else:
@@ -138,6 +140,16 @@ def transcribe_audio(file_path, language="japanese"):
     except Exception as e:
         print(f"錯誤: 無法轉錄聲音。詳情：{e}")
         return None
+
+# 新增的保存KeyError: 'candidates' not found in response 的完整回應
+def save_debug_data(filename, data):
+    debug_dir = 'debug'
+    if not os.path.exists(debug_dir):
+        os.makedirs(debug_dir)
+
+    path = os.path.join(debug_dir, f'{filename}_save_debug_data.txt')
+    with open(path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
 # 新增的保存轉錄文的函數
 def save_transcription(file_path, text, is_api_response=False):
@@ -238,7 +250,7 @@ def main(segment_duration, total_duration):
                 else:
                     print(f"無法翻譯 {segment}。")
             else:
-                print(f"無法轉錄片段 {segment}。")
+                print(f"此片段無音訊故無法轉錄: 第{segment}秒。")
             os.remove(filename)  # 清理：聲音檔案
         else:
             print(f"錄製段落 {segment} 失敗。")
