@@ -1,37 +1,62 @@
 # AutoVT
-GPT流派的Youtube直播流切片翻譯(半即時)
 
-## 這是什麼?
-因為我日文程度N87又很喜歡看那些小小軟軟可愛的V
+YouTube 日語直播即時翻譯工具（日語 → 繁體中文）
 
-苦於聽不懂市面上又沒有人做翻譯插件，只好自己搓一個直播流切片翻譯
+## 這是什麼？
 
-然後我自己也不是Python專業，只好求助GPT-4幫幫忙
+因為日文程度 N87 又很喜歡看那些小小軟軟可愛的 V，苦於聽不懂、市面上又沒有翻譯插件，只好自己搓一個直播流切片翻譯。
 
-## 技術說明
-運用Youtube DL去下載影片，運用FFmepeg去分割影片存成mp3
+## 運作原理
 
-最後用Whisper去讀取wav轉文字印出，印出的文字再翻譯
+```
+yt-dlp 取得串流 URL → FFmpeg 錄音（每 10 秒）→ Faster-Whisper 語音轉文字 → Ollama 翻譯 → 終端顯示
+```
 
-## Colab版本(Cuda)，不建議使用(太舊了)
-運用於Google Colab使用，其他ipynb環境無測試
+## 環境需求
 
-## Local-Windows版本(Cuda/CPU)
-運用於Windows環境使用
+- Windows 10/11
+- NVIDIA GPU（建議 8GB VRAM）
+- Python 3.10+
+- [FFmpeg](https://ffmpeg.org/)（需加入 PATH）
+- [Ollama](https://ollama.ai/)
 
-## Docker版本(Cuda)，沒測試過
-> docker pull arcelibs/autovt
+## 使用模型
 
-## 版本更新說明
+| 元件 | 模型 | VRAM 用量 |
+|------|------|-----------|
+| 語音轉文字 | distil-whisper-large-v3 | ~4-5 GB |
+| 翻譯 | TranslateGemma 4B（via Ollama） | ~2.6 GB |
 
-AutoVT v1.0.1  (穩定版): 使用基礎Gemini Pro API 進行翻譯
+## 安裝步驟
 
-AutoVT v1.0.2  (測試版): 先使用NLP做語意分析，再用DeepL API進行翻譯，最後使用Gemini Pro API 進行翻譯
+**1. 安裝 Python 套件**
 
+```bash
+pip install -r requirements.txt
+```
 
+**2. 安裝 Ollama 並下載翻譯模型**
+
+```bash
+ollama pull translategemma
+```
+
+**3. 啟動 Ollama**
+
+```bash
+ollama serve
+```
+
+## 使用方式
+
+```bash
+python main.py
+```
+
+或直接執行 `AutoYT.cmd`，輸入 YouTube 直播網址即可開始翻譯。
+
+不需要任何 API 金鑰。
 
 ## 備註
-提交issue我看不懂的機率高達99.8%
 
-
-
+提交 issue 我看不懂的機率高達 99.8%

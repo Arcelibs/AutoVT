@@ -1,7 +1,3 @@
-openai-whisper
 faster-whisper
 yt-dlp
-requests
-openai==0.28
-requests
-google-generativeai
+openai
